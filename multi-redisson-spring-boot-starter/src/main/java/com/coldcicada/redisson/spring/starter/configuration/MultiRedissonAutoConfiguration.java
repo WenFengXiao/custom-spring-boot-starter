@@ -1,5 +1,6 @@
 package com.coldcicada.redisson.spring.starter.configuration;
 
+import com.coldcicada.redisson.spring.starter.context.RedissonCommonConstant;
 import com.coldcicada.redisson.spring.starter.context.RedissonContext;
 import com.coldcicada.redisson.spring.starter.property.MultiRedissonProperties;
 import com.coldcicada.redisson.spring.starter.property.item.ClusterRedissonProperty;
@@ -40,6 +41,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+
 /**
  * @Author coldcicada
  * @Date 2024-06-25 17:14
@@ -55,10 +57,6 @@ public class MultiRedissonAutoConfiguration implements InitializingBean {
     private static final String DESTROY_METHOD_NAME = "shutdown";
 
     private static final String SENTINEL_ADDRESS_PREFIX = "redis://";
-
-    private static final String CLIENT_BEAN_SUFFIX = "RedissonClient";
-
-    private static final String CLIENT_MODE_CONFIG_KEY = "multi-redisson.client-model";
 
     private final ConfigurableListableBeanFactory configurableListableBeanFactory;
 
@@ -93,7 +91,7 @@ public class MultiRedissonAutoConfiguration implements InitializingBean {
     @ConditionalOnMissingBean(RedisConnectionFactory.class)
     public RedissonConnectionFactory redissonConnectionFactory() {
 
-        RedissonClient redisson = applicationContext.getBean(properties.getPrimary() + CLIENT_BEAN_SUFFIX, RedissonClient.class);
+        RedissonClient redisson = applicationContext.getBean(properties.getPrimary() + RedissonCommonConstant.CLIENT_BEAN_SUFFIX, RedissonClient.class);
 
         return new RedissonConnectionFactory(redisson);
     }
@@ -103,7 +101,7 @@ public class MultiRedissonAutoConfiguration implements InitializingBean {
     @ConditionalOnMissingBean(RedissonReactiveClient.class)
     public RedissonReactiveClient redissonReactive() {
 
-        RedissonClient redisson = applicationContext.getBean(properties.getPrimary() + CLIENT_BEAN_SUFFIX, RedissonClient.class);
+        RedissonClient redisson = applicationContext.getBean(properties.getPrimary() + RedissonCommonConstant.CLIENT_BEAN_SUFFIX, RedissonClient.class);
 
         return redisson.reactive();
     }
@@ -113,7 +111,7 @@ public class MultiRedissonAutoConfiguration implements InitializingBean {
     @ConditionalOnMissingBean(RedissonRxClient.class)
     public RedissonRxClient redissonRxJava() {
 
-        RedissonClient redisson = applicationContext.getBean(properties.getPrimary() + CLIENT_BEAN_SUFFIX, RedissonClient.class);
+        RedissonClient redisson = applicationContext.getBean(properties.getPrimary() + RedissonCommonConstant.CLIENT_BEAN_SUFFIX, RedissonClient.class);
 
         return redisson.rxJava();
     }
@@ -126,7 +124,7 @@ public class MultiRedissonAutoConfiguration implements InitializingBean {
 
             Config config = generateSingleConfig(v);
 
-            String redissonBeanClientName = k + CLIENT_BEAN_SUFFIX;
+            String redissonBeanClientName = k + RedissonCommonConstant.CLIENT_BEAN_SUFFIX;
 
             BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(Redisson.class);
             beanDefinitionBuilder.addConstructorArgValue(config);
@@ -145,7 +143,7 @@ public class MultiRedissonAutoConfiguration implements InitializingBean {
 
             Config config = generateSentinelConfig(v);
 
-            String redissonBeanClientName = k + CLIENT_BEAN_SUFFIX;
+            String redissonBeanClientName = k + RedissonCommonConstant.CLIENT_BEAN_SUFFIX;
 
             BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(Redisson.class);
             beanDefinitionBuilder.addConstructorArgValue(config);
@@ -165,7 +163,7 @@ public class MultiRedissonAutoConfiguration implements InitializingBean {
 
             Config config = generateClusterConfig(v);
 
-            String redissonBeanClientName = k + CLIENT_BEAN_SUFFIX;
+            String redissonBeanClientName = k + RedissonCommonConstant.CLIENT_BEAN_SUFFIX;
 
             BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(Redisson.class);
             beanDefinitionBuilder.addConstructorArgValue(config);
@@ -295,32 +293,24 @@ public class MultiRedissonAutoConfiguration implements InitializingBean {
 
         if (!ObjectUtils.isEmpty(properties)) {
 
-            String clientMode = applicationContext.getEnvironment().getProperty(CLIENT_MODE_CONFIG_KEY);
+            if (! properties.getSingleClients().isEmpty()) {
 
-            if (clientMode != null) {
+                registerSingleRedissonClient(properties.getSingleClients());
+                properties.getSingleClients().forEach((k, v) -> RedissonContext.getRedissonClientMap().put(k + RedissonCommonConstant.CLIENT_BEAN_SUFFIX, applicationContext.getBean(k + RedissonCommonConstant.CLIENT_BEAN_SUFFIX, RedissonClient.class)));
 
-                switch (clientMode) {
-                    case "single":
+            }
 
-                        registerSingleRedissonClient(properties.getSingleClients());
-                        properties.getSingleClients().forEach((k, v) -> RedissonContext.getRedissonClientMap().put(k + CLIENT_BEAN_SUFFIX, applicationContext.getBean(k + CLIENT_BEAN_SUFFIX, RedissonClient.class)));
+            if (! properties.getSentinelClients().isEmpty()) {
 
-                        break;
-                    case "sentinel":
+                registerSentinelRedissonClient(properties.getSentinelClients());
+                properties.getSentinelClients().forEach((k, v) -> RedissonContext.getRedissonClientMap().put(k + RedissonCommonConstant.CLIENT_BEAN_SUFFIX, applicationContext.getBean(k + RedissonCommonConstant.CLIENT_BEAN_SUFFIX, RedissonClient.class)));
 
-                        registerSentinelRedissonClient(properties.getSentinelClients());
-                        properties.getSentinelClients().forEach((k, v) -> RedissonContext.getRedissonClientMap().put(k + CLIENT_BEAN_SUFFIX, applicationContext.getBean(k + CLIENT_BEAN_SUFFIX, RedissonClient.class)));
+            }
 
-                        break;
-                    case "cluster":
+            if (! properties.getClusterClients().isEmpty()) {
 
-                        registerClusterRedissonClient(properties.getClusterClients());
-                        properties.getClusterClients().forEach((k, v) -> RedissonContext.getRedissonClientMap().put(k + CLIENT_BEAN_SUFFIX, applicationContext.getBean(k + CLIENT_BEAN_SUFFIX, RedissonClient.class)));
-                        break;
-
-                    default:
-
-                }
+                registerClusterRedissonClient(properties.getClusterClients());
+                properties.getClusterClients().forEach((k, v) -> RedissonContext.getRedissonClientMap().put(k + RedissonCommonConstant.CLIENT_BEAN_SUFFIX, applicationContext.getBean(k + RedissonCommonConstant.CLIENT_BEAN_SUFFIX, RedissonClient.class)));
             }
 
             RedissonContext.setApplicationContext(applicationContext);

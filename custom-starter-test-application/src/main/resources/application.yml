@@ -1,0 +1,92 @@
+#==================================================================
+# spring application 配置
+#==================================================================
+spring:
+  application:
+    name: custom-starter-test-application
+
+#==================================================================
+# 端口配置
+#==================================================================
+server:
+  port: 8086
+
+#==================================================================
+# 系统名称
+#==================================================================
+system-no: starter-example
+
+#==================================================================
+# redisson 配置
+#==================================================================
+multi-redisson:
+  enabled: true            #是否启用redisson-component组件 默认：true
+  redis-key-separator: ":" #系统自动在redis中生成的key的分隔符
+  primary: primary         #多redis源下主客户端源的名字
+  sentinelClients:
+    primary:
+      threads: 32
+      nettyThreads: 32
+      masterName: mymaster
+      sentinelAddresses: 127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381
+      readMode: "MASTER"
+      subscriptionMode: "SLAVE"
+      loadBalancer: org.redisson.connection.balancer.RoundRobinLoadBalancer
+      subscriptionConnectionMinimumIdleSize: 1
+      subscriptionConnectionPoolSize: 50
+      slaveConnectionMinimumIdleSize: 32
+      slaveConnectionPoolSize: 64
+      masterConnectionMinimumIdleSize: 32
+      masterConnectionPoolSize: 500
+      idleConnectionTimeout: 10000
+      connectTimeout: 10000
+      timeout: 3000
+      retryAttempts: 3
+      retryInterval: 1500
+      failedSlaveReconnectionInterval: 3000
+      database: 0
+      clientName: starter-example-redisson-primary
+      password:
+      codec: org.redisson.client.codec.StringCodec
+    secondary:
+      threads: 32
+      nettyThreads: 32
+      masterName: mymaster
+      sentinelAddresses: 127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381
+      readMode: "MASTER"
+      subscriptionMode: "SLAVE"
+      loadBalancer: org.redisson.connection.balancer.RoundRobinLoadBalancer
+      subscriptionConnectionMinimumIdleSize: 1
+      subscriptionConnectionPoolSize: 50
+      slaveConnectionMinimumIdleSize: 32
+      slaveConnectionPoolSize: 64
+      masterConnectionMinimumIdleSize: 32
+      masterConnectionPoolSize: 500
+      idleConnectionTimeout: 10000
+      connectTimeout: 10000
+      timeout: 3000
+      retryAttempts: 3
+      retryInterval: 1500
+      failedSlaveReconnectionInterval: 3000
+      database: 7
+      clientName: starter-example-redisson-secondary
+      password:
+      codec: org.redisson.client.codec.StringCodec
+
+sequence:
+  redisClient: primary
+  redis-key-prefix: sequences
+  items:
+    1001:
+      prefix: "" #前缀
+      s-value: 1
+      len: 18
+      f-char: 0
+      f-orient: L
+      prefetch: 10
+      desc: "TEST_SEQUENCE"
+
+
+
+logging:
+  config: classpath:logback.xml

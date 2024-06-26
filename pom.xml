@@ -7,8 +7,8 @@
     <groupId>com.coldcicada</groupId>
     <artifactId>custom-spring-boot-starter</artifactId>
     <version>1.0.0</version>
-
     <packaging>pom</packaging>
+
     <properties>
         <spring.cloud-version>2023.0.0</spring.cloud-version>
         <spring.boot-version>3.2.3</spring.boot-version>
@@ -44,5 +44,7 @@
 
     <modules>
         <module>multi-redisson-spring-boot-starter</module>
+        <module>custom-starter-test-application</module>
+        <module>sequence-spring-boot-starter</module>
     </modules>
 </project>

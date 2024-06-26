@@ -1,0 +1,4 @@
+# Auto Configuration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration= \
+  com.coldcicada.sequence.spring.starter.configuration.SequenceAutoConfiguration,\
+  com.coldcicada.sequence.spring.starter.listener.SequenceInitListener
